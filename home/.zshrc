@@ -1,5 +1,5 @@
 export TERM="xterm-256color"
-source "/usr/local/opt/homeshick/homeshick.sh"
+source "$HOME/.homesick/repos/homeshick/homeshick.sh"
 
 ANTIGEN="$HOME/kitchen/antigen/antigen.zsh"
 source $ANTIGEN
@@ -16,7 +16,6 @@ antigen bundle zsh-users/zsh-syntax-highlighting
 antigen bundle djui/alias-tips
 antigen bundle psprint/zsh-cmd-architect
 antigen bundle colored-man-pages
-antigen bundle gpg-agent
 antigen theme bhilburn/powerlevel9k powerlevel9k
 antigen apply
 
@@ -38,7 +37,12 @@ alias emacs='emacsclient -nw'
 #
 autoload bashcompinit
 bashcompinit
-source ~/.bash_completion.d/python-argcomplete.sh
+source /usr/local/etc/bash_completion.d/python-argcomplete.sh
+
+# Ensure gpg-agent starts
+if ! pgrep -x -u "${USER}" gpg-agent >/dev/null 2>&1; then
+    gpg-connect-agent /bye >/dev/null 2>&1
+fi
 
 #[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 
@@ -47,7 +51,25 @@ eval "$(_TMUXP_COMPLETE=source tmuxp)"
 acd () {
     cd $1 && [ -x autoexec ] && ./autoexec
 }
-alias colourize="pygmentize -f console256 -O full,style=paraiso-dark"
+colourize () {
+    pygmentize -f console256 -O full,style=paraiso-dark "$1" | less -R
+}
+#alias colourize="pygmentize -f console256 -O full,style=paraiso-dark"
 
 export POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(context dir anaconda virtualenv vcs)
 
+docker-gc() {
+    docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v /etc:/etc:ro spotify/docker-gc
+}
+
+dir() {
+    exa --long --git --extended $@
+}
+
+if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
+export PATH="$HOME/.rbenv/bin:$PATH"
+eval "$(rbenv init -)"
+export PATH="/usr/local/opt/elasticsearch@2.4/bin:$PATH"
+alias diary="emacs ~/Documents/diary.org"
+USER_EMAIL="$(git config user.email)"
+lpass login "$USER_EMAIL"
